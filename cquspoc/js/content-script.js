@@ -114,6 +114,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (courseData[currentCourseIndex].videosRecord.done.indexOf(course.all[currentVideoIndex]) === -1) {
 				window.location.href = `${spocUrl}lms#/video/${courseID}/${classID}/${courseData[currentCourseIndex].unit_id}/${course.all[currentVideoIndex]}/0/videoDiscussion`;
 				flushCourse();
+				gotoNext();
 			} else {
 				if (currentVideoIndex === course.all.length - 1) {
 					currentCourseIndex++;
