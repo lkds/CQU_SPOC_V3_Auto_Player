@@ -1,6 +1,7 @@
 ﻿console.log('这是content script!');
 let spocUrl = 'https://cquv3.xuetangx.com/';
-let courseID = '52464';
+let courseID = 30000;
+let classID = '52464';
 let courseData = {};
 let currentCourseIndex = 0;
 let currentVideoIndex = 0;
@@ -96,8 +97,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		getCourseList = (callback) => {
 			$.ajax({
 				type: "POST",
-				url: `${spocUrl}lms/api/v1/course/30000/courseware/`,
-				data: { class_id: `${courseID}` },
+				url: `${spocUrl}lms/api/v1/course/${courseID}/courseware/`,
+				data: { class_id: `${classID}` },
 				dataType: "json",
 				success: function (data) {
 					console.log(data)
@@ -111,7 +112,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		gotoVideo = () => {
 			const course = courseData[currentCourseIndex].videosRecord;
 			if (courseData[currentCourseIndex].videosRecord.done.indexOf(course.all[currentVideoIndex]) === -1) {
-				window.location.href = `${spocUrl}lms#/video/30000/${courseID}/${courseData[currentCourseIndex].unit_id}/${course.all[currentVideoIndex]}/0/videoDiscussion`;
+				window.location.href = `${spocUrl}lms#/video/${courseID}/${classID}/${courseData[currentCourseIndex].unit_id}/${course.all[currentVideoIndex]}/0/videoDiscussion`;
+				flushCourse();
 			} else {
 				if (currentVideoIndex === course.all.length - 1) {
 					currentCourseIndex++;
@@ -171,7 +173,12 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 				console.log("flush")
 			} catch{
-				flushCourse();
+				setTimeout(() => {
+					flushCourse();
+				}, 2000);
+				setTimeout(() => {
+					flushCourse();
+				}, 2000);
 			}
 
 		}
@@ -189,16 +196,56 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 
 		checkPage = () => {
-			return window.location.href.split('/')[4] === 'video';
+			url = window.location.href.split('/');
+			if (url.indexOf("video") !== -1) {
+				return 'video';
+			} else if (url.indexOf("schedule") !== -1) {
+				return 'schedule';
+			} else if (url.indexOf("home") !== -1) {
+				return 'home';
+			} else if (url.indexOf("studentcourselist") !== -1) {
+				return 'studentcourselist';
+			} else {
+				return 'unknow';
+			}
 		}
+
+		initCourseInfo = () => {
+			url = window.location.href.split('/');
+			// spocUrl = url[0] + url[2];
+			courseID = url[4];
+			classID = url[5];
+		}
+
+		gotoCourseSelect = () => {
+			window.location.href = `${spocUrl}manager#/studentcourselist`;
+		}
+
+		renderSelectTip = () => {
+			var panel = document.createElement('div');
+			panel.className = 'chrome-plugin-demo-panel';
+			panel.innerHTML = `
+				<h2>选择课程</h2>
+				请进入你要操作的课程
+			`;
+			document.body.appendChild(panel);
+		}
+
 
 		main = () => {
 			// removeInterrpt();
-			if (checkPage()) {
-				flushCourse();
-				gotoNext();
-			} else if (checkLoginStatus()) {
-				gotoNext();
+			if (checkLoginStatus()) {
+				if (checkPage() === 'video') {
+					flushCourse();
+					gotoNext();
+				} else if (checkPage() === 'schedule') {
+					initCourseInfo();
+					getCourseList(gotoVideo);
+				} else if (checkPage() === 'studentcourselist') {
+					renderSelectTip();
+				} else {
+					gotoCourseSelect();
+				}
 			} else {
 				gotoLogin();
 			}
