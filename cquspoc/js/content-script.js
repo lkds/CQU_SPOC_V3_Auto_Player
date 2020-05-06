@@ -5,6 +5,7 @@ let classID = '52464';
 let courseData = {};
 let currentCourseIndex = 0;
 let currentVideoIndex = 0;
+let timer;
 
 // 注意，必须设置了run_at=document_start 此段代码才会生效
 document.addEventListener('DOMContentLoaded', function () {
@@ -55,7 +56,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	// }
 
 	if (location.host == 'cquv3.xuetangx.com') {
-		// alert("load")
 		dispatch = (el, type) => {
 			try {
 				var evt = document.createEvent('Event');
@@ -114,6 +114,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (courseData[currentCourseIndex].videosRecord.done.indexOf(course.all[currentVideoIndex]) === -1) {
 				window.location.href = `${spocUrl}lms#/video/${courseID}/${classID}/${courseData[currentCourseIndex].unit_id}/${course.all[currentVideoIndex]}/0/videoDiscussion`;
 				flushCourse();
+				clearInterval(timer);
 				gotoNext();
 			} else {
 				if (currentVideoIndex === course.all.length - 1) {
@@ -185,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 
 		gotoNext = () => {
-			setInterval(() => {
+			timer = setInterval(() => {
 				try {
 					if (isFinished()) {
 						getCourseList(gotoVideo);
@@ -234,10 +235,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 		main = () => {
-			// removeInterrpt();
+			injectCustomJs();
 			if (checkLoginStatus()) {
 				if (checkPage() === 'video') {
 					flushCourse();
+					clearInterval(timer);
 					gotoNext();
 				} else if (checkPage() === 'schedule') {
 					initCourseInfo();
